@@ -17,6 +17,17 @@
 \		UNICAS   xxxxxx
 \		COMUNICANDO WEB
 
+\ Generic screen drawing fn
+: SCX ( l1 l2 l3 l4 -- )
+
+	3 FOR
+		I DRW
+		50 DLY
+	NEXT \ NXT in n4
+
+	0 DRW
+;
+
 VAR device
 VAR tag_unique
 VAR all_tag
@@ -29,10 +40,18 @@ VAR comm
 	all_tag    @
 	comm       @
 
-	3 FOR
-		I DRW
-		50 DLY
-	NXT
+	SCX
+;
 
-	0 DRW
+VAR leitor
+VAR ip
+
+: SC2 ( -- )
+	
+	device @
+	leitor @
+	ip     @
+	comm   @
+
+	SCX
 ;

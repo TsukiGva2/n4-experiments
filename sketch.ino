@@ -37,16 +37,12 @@ void forth_display() {
 
 	size_t count = pop_sane();
 
-  char *arr = (char*)malloc(count + 1); // '\0'
-	memset(arr, 0, count + 1);
-
 	// reversing the order so the string
 	// is printed correctly
-	for (;count-- > 0;) {
-		arr[count] = n4_pop();
+	for (size_t i = count; i > 0; i--) {
+    
+		lcd.print((char)n4_pop());
 	}
-
-  lcd.print(String(arr));
 }
 
 void forth_clear_cursor() {

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
+	//"time"
 )
 
 func InitFunctions(forth SerialForth) {
@@ -17,13 +17,12 @@ func InitFunctions(forth SerialForth) {
 			REGIST.  xxxxxx
 			UNICAS   xxxxxx
 			COMUNICANDO WEB
+	*/
 
-		: SC1 ( -- )
+	forth.Run("VAR comm VAR all_tag VAR tag_unique VAR dev")
 
-			dev        @
-			tag_unique @
-			all_tag    @
-			comm       @
+	/*
+		: SCX ( l1 l2 l3 l4 -- )
 
 			3 FOR
 				I DRW
@@ -33,24 +32,20 @@ func InitFunctions(forth SerialForth) {
 			0 DRW
 		;
 	*/
-	forth.Run("VAR comm VAR all_tag VAR tag_unique VAR dev")
-	forth.Run(
-		fmt.Sprintf(": SC1 dev @ tag_unique @ all_tag @ comm @ 3 FOR I DRW NXT 0 DRW ;"),
-	)
+
+	forth.Run(fmt.Sprintf(": SCX 3 FOR I DRW NXT 0 DRW ;"))
 }
 
 func Screen1(forth SerialForth, device, tag_set, tag_cont, comunicando string) {
 
 	forth.Run(
-		fmt.Sprintf("%s %s %s %s comm ! all_tag ! tag_unique ! dev !",
+		fmt.Sprintf("%s %s %s %s SCX",
 			forth.getBytes(device),
 			forth.getBytes(tag_set),
 			forth.getBytes(tag_cont),
 			forth.getBytes(comunicando),
 		),
 	)
-
-	forth.Run("SC1")
 }
 
 func main() {
@@ -58,6 +53,7 @@ func main() {
 	forth, err := NewSerialForth()
 
 	if err != nil {
+
 		log.Fatalf("Error opening arduino: %v", err)
 	}
 
@@ -78,7 +74,5 @@ func main() {
 			fmt.Sprintf("REGIST.  %d", registros),
 			"COMUNICANDO WEB",
 		)
-
-		time.Sleep(100 * time.Millisecond)
 	}
 }

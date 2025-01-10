@@ -3,60 +3,82 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 )
+
+func InitFunctions(forth SerialForth) {
+
+	forth.Run(": DRW 0 m $ d a ;")
+
+	/*
+		Expected output:
+
+			PORTAL   xxxxxx
+			REGIST.  xxxxxx
+			UNICAS   xxxxxx
+			COMUNICANDO WEB
+
+		: SC1 ( -- )
+
+			dev        @
+			tag_unique @
+			all_tag    @
+			comm       @
+
+			3 FOR
+				I DRW
+				50 DLY
+			NXT
+
+			0 DRW
+		;
+	*/
+	forth.Run("VAR comm VAR all_tag VAR tag_unique VAR dev")
+	forth.Run(
+		fmt.Sprintf(": SC1 dev @ tag_unique @ all_tag @ comm @ 3 FOR I DRW NXT 0 DRW ;"),
+	)
+}
+
+func Screen1(forth SerialForth, device, tag_set, tag_cont, comunicando string) {
+
+	forth.Run(
+		fmt.Sprintf("%s %s %s %s comm ! all_tag ! tag_unique ! dev !",
+			forth.getBytes(device),
+			forth.getBytes(tag_set),
+			forth.getBytes(tag_cont),
+			forth.getBytes(comunicando),
+		),
+	)
+
+	forth.Run("SC1")
+}
 
 func main() {
 
-	ino, err := NewArduino()
+	forth, err := NewSerialForth()
 
 	if err != nil {
 		log.Fatalf("Error opening arduino: %v", err)
 	}
 
-	defer ino.Close()
+	defer forth.Close()
 
-	//	ino.Append("tags: ")
-	//
-	//	for i := range uint8(30) {
-	//		ino.Move(0, 0)
-	//		ino.Clear((i % 16) - 1)
-	//		ino.Move(i%16, 0)
-	//		ino.Append("O")
-	//	}
+	InitFunctions(forth)
 
-	/* Annotated code:
+	var tags_unicas, registros uint8 = 0, 0
 
-	: SC1                    # Scene1
-		30 FOR I               # FOR I = 30 to 1
-			0 0 m                #   LCD.move(0, 0)
-			I ASC 16 MOD 1 - d   #   LCD.clear([I (in ASCending order) MOD 16] - 1)
-			I ASC 16 MOD 0 SWP m #   LCD.move(I (in ASCending order) MOD 16, 0)
-			65 1 a               #   LCD.print('A')
-			500 DLY              #   delay(500)
-		NXT                    # NEXT I
-	;
+	for range 300 {
 
-	*/
+		tags_unicas++
+		registros++
 
-	//ino.Send(`: a 1 API ; : m 2 API ; : d 3 API ;\n`)
+		Screen1(forth,
+			"PORTAL   701",
+			fmt.Sprintf("UNICAS   %d", tags_unicas),
+			fmt.Sprintf("REGIST.  %d", registros),
+			"COMUNICANDO WEB",
+		)
 
-	//ino.Send(": ASC 30 SWP - ;\n") // trick to invert the order of the FOR to ASCending
-	//ino.Send(": SC1 30 FOR I ASC 0 0 2 API I ASC 16 MOD 1 - 3 API I ASC 16 MOD 0 SWP 2 API 65 1 1 API 500 DLY NXT ;\n")
-
-	/* Display 'tags: 55555':
-
-	: SC1
-		$FixString("tags: 55555")
-		$len("tags: 55555")
-
-		0 0 m
-		a
-	;
-
-	*/
-
-	ino.Send(fmt.Sprintf(": SC1 %s %d 0 0 m a ;\n", FixString("tags: 55555"), len("tags: 55555")))
-
-	// running the scene
-	ino.Send("SC1\n")
+		time.Sleep(100 * time.Millisecond)
+	}
 }
